@@ -85,15 +85,15 @@ public class OGLES2Renderer implements GLSurfaceView.Renderer {
         FloatBuffer verticesBuffer;
         
 	    //triangles
-	    final float verticesTriangle[] = {
+	    final float vertices[] = {
 	    	leftX, bottomY
 	        , rightX, bottomY
 	        , leftX, topY
 	        , rightX, topY
 	    };
-        verticesBuffer = ByteBuffer.allocateDirect(verticesTriangle.length
+        verticesBuffer = ByteBuffer.allocateDirect(vertices.length
                 * FLOAT_SIZE).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        verticesBuffer.put(verticesTriangle).position(0);        
+        verticesBuffer.put(vertices).position(0);        
 		GLES20.glVertexAttribPointer(maVertices, 2, GLES20.GL_FLOAT, false, 0, verticesBuffer);
 		
         ShortBuffer indexBuffer;
