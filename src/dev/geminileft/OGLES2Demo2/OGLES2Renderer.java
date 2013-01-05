@@ -3,6 +3,7 @@ package dev.geminileft.OGLES2Demo2;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -15,10 +16,9 @@ public class OGLES2Renderer implements GLSurfaceView.Renderer {
 
 	//size in bytes of float
     private final int FLOAT_SIZE = 4;
+    private final int SHORT_SIZE = 2;
     private int maVertices;
     private int maColor;
-    private int mWidth;
-    private int mHeight;
     
 	public OGLES2Renderer(GLSurfaceView view) {
 		super();
@@ -45,14 +45,14 @@ public class OGLES2Renderer implements GLSurfaceView.Renderer {
 
 	@Override
 	public void onSurfaceChanged(GL10 arg0, int width, int height) {
-		mWidth = width;
-		mHeight = height;
+		final float halfWidth = width / 2.0f;
+		final float halfHeight = height / 2.0f;
 		
 	    GLES20.glViewport(0, 0, width, height);
 	    
 	    //set matrices and pass to shader
 	    float projMatrix[] = new float[16];
-	    Matrix.orthoM(projMatrix, 0, 0, width, 0, height, -1, 1);
+	    Matrix.orthoM(projMatrix, 0, -halfWidth, halfWidth, -halfHeight, halfHeight, -1, 1);
 	    final int progId = GraphicsUtils.currentProgramId();
 	    int uProjectionMatrix = GLES20.glGetUniformLocation(progId, "uProjectionMatrix");
 	    GLES20.glUniformMatrix4fv(uProjectionMatrix, 1, false, projMatrix, 0);
@@ -69,8 +69,6 @@ public class OGLES2Renderer implements GLSurfaceView.Renderer {
 	        , 1.0f, 0.0f, 1.0f, 0.0f
 	        , 1.0f, 0.0f, 1.0f, 0.0f
 	        , 1.0f, 0.0f, 1.0f, 0.0f
-	        , 1.0f, 0.0f, 1.0f, 0.0f
-	        , 1.0f, 0.0f, 1.0f, 0.0f
 	    };
         FloatBuffer colorBuffer = ByteBuffer.allocateDirect(colors.length
                 * FLOAT_SIZE).order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -79,13 +77,10 @@ public class OGLES2Renderer implements GLSurfaceView.Renderer {
 
 	    //measure out vertices and set for quad
 	    final float SIZE = 50;
-	    final float HALF_WIDTH = mWidth / 2.0f;
-	    final float HALF_HEIGHT = mHeight / 2.0f;
-	    
-	    final float leftX = HALF_WIDTH - SIZE;
-	    final float rightX = HALF_WIDTH + SIZE;
-	    final float topY = HALF_HEIGHT + SIZE;
-	    final float bottomY = HALF_HEIGHT - SIZE;
+	    final float leftX = -SIZE;
+	    final float rightX = SIZE;
+	    final float topY = SIZE;
+	    final float bottomY = -SIZE;
 	    
         FloatBuffer verticesBuffer;
         
@@ -94,16 +89,23 @@ public class OGLES2Renderer implements GLSurfaceView.Renderer {
 	    	leftX, bottomY
 	        , rightX, bottomY
 	        , leftX, topY
-	        , rightX, bottomY
-	        , leftX, topY
 	        , rightX, topY
 	    };
         verticesBuffer = ByteBuffer.allocateDirect(verticesTriangle.length
                 * FLOAT_SIZE).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        verticesBuffer.put(verticesTriangle).position(0);
-        
-        
+        verticesBuffer.put(verticesTriangle).position(0);        
 		GLES20.glVertexAttribPointer(maVertices, 2, GLES20.GL_FLOAT, false, 0, verticesBuffer);
-	    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+		
+        ShortBuffer indexBuffer;
+        
+	    //indices
+	    final short indices[] = {
+	    	0, 1, 2, 1, 2, 3
+	    };
+        indexBuffer = ByteBuffer.allocateDirect(indices.length
+                * SHORT_SIZE).order(ByteOrder.nativeOrder()).asShortBuffer();
+        indexBuffer.put(indices).position(0);
+
+	    GLES20.glDrawElements(GLES20.GL_TRIANGLES, 6, GLES20.GL_UNSIGNED_SHORT, indexBuffer);
 	}
 }
